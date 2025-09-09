@@ -6,27 +6,27 @@ WORKDIR /src
 COPY package*.json ./
 RUN npm install
 
-# Copy code
+# Copy source code
 COPY . .
 
 # Generate Prisma client
 RUN npx prisma generate
 
-# Build Nest.js
+# Build NestJS
 RUN npm run build
 
 # Stage 2: Production
 FROM node:20-alpine
-WORKDIR /app
+WORKDIR /src
 
-# Copy built files
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/prisma ./prisma
+# Copy only required artifacts from builder
+COPY --from=builder /src/dist ./dist
+COPY --from=builder /src/node_modules ./node_modules
+COPY --from=builder /src/prisma ./prisma
 COPY package*.json ./
 
-# Expose port
+# Expose app port
 EXPOSE 4000
 
-# Run the app
+# Start the app
 CMD ["node", "dist/main.js"]
